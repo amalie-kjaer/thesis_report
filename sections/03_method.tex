@@ -1,0 +1,185 @@
+\newpage
+\chapter{Datasets}
+\textbf{ScanNet}
+The ScanNet dataset consists of 1,513 annotated point clouds of 3D-indoor environments, generated from 2,492,518 annotated RGB-D frames. The dataset includes a wide range of spaces such as offices, apartments, bathrooms, classrooms, libraries, and more. It spans both small spaces (e.g., bathrooms, closets) and large spaces (e.g., studio apartments, classrooms). The dataset is annotated with instance-level and semantic-level (NYU40) labels.
+
+Note: In most existing SSG methods, the scene must first be segmented. However, to get a more accurate scene graph dataset, we opt to use the segmentation already provided by ScanNet. we use oracle segmentation (we assume perfect segmentation is available).
+
+Note: we remove scenes with segmentation errors (some segmented objects do not appear in any of the images -- specifically scenes 180, 279, 305, 530, 597)
+[Plot scene / label distribution]
+
+\noindent
+\textbf{ScanQA}
+The ScanQA dataset consists of xxx questions about the ScanNet scenes.
+We prepare x different question datasets to experiment on: 1) easy 2) hard 3) complete/mixed 4) constant scenes
+[Plot question / answer distribution]
+
+Limitations: although ScanQA is designed for 3D-VQA, most of the questions do not require 3D information to answer (ie could be answered with 2D images only). This is because the questions are generated from the 2D images of the scenes (check this fact?). Ie. no questions about distances, paths, dimensions, geometry, etc.
+
+\newpage
+\chapter{Method}
+
+%-----------------------------
+% METHODS INTRODUCTION
+% Remember to include:
+% - What problem are you solving formally (inputs, outputs, assumptions)
+% - How are you solving this problem
+%-----------------------------
+This project addresses the task of Visual Question Answering within 3D indoor environments (3D-VQA). 3D-VQA consists in answering open-vocabulary, free-form questions about an environment. For example, given segmented RGB-D images of a hallway and the question "Where did I put my keys?", the 3D-VQA model should be able to locate the keys in the scene and output an accurate response to the question, such as "On top of the drawer at position ($x, y, z$)".
+
+The two main challenges of the 3D-VQA task are 1) to create a rich scene representation, often starting from RGB-D frames and 2) to combine this scene representation with a text query to produce an accurate output answer. The 3D-VQA task therefore requires merging different data modalities in a multimodal model to condition the output answer on the given question-scene input pairs.
+
+While current research often claims to utilize scene graphs as scene representations, it solely relies on node information, and does not utilize edge information in the VQA model. This means that current methods do not leverage the full potential of scene graphs. Furthermore, existing VQA models often rely solely on pre-trained language-vision models, such as CLIP, to bring the question and scene representation into the same embedding space, lacking a learning mechanism.
+
+To mitigate these limitations, we propose:
+\begin{enumerate}
+    \item a dataset of scene graphs for the ScanNet dataset (ScanNet-SG), paired with questions about the graphs from the ScanQA dataset. This is, to our knowledge, the first dataset of question-scene graph pairs for 3D indoor environments.
+    \item an end-to-end 3D-VQA classification model which combines graph and text modalities to answer questions about the scene.
+\end{enumerate}
+
+We emphasize that our proposed VQA model is a classificaton model, rather than a generation model. This means that the model does not aim to output free-form answers, but rather to solve the task of selecting the object in the scene which is most relevant to the question posed. For example, the question "What color is the chair by the desk" should return the instance of "chair", rather than the answer "the chair is black". In other words, the proposed model returns the object in the scene which is most relevant to the question (where someone should look to answer the question), rather than the actual answer to the question. This classification task is easier to evaluate and interpret than the generation task, and a good starting point for evaluating the model's ability to understand question-scene pairs. Furthermore, solving the classification task first ensures that we can train a model that does not rely on textual priors to answer questions, since the model must focus on instance accuracy rather than semantic accuracy. This forces the model to learn to understand the scene and the question. Our model can be easily extended to a generation model by adding a decoder component to the model.
+
+The following sections detail the scene graph generation method used to obtain the ScanNet-SG dataset, as well as the proposed 3D-VQA classification models.
+
+
+
+
+
+
+\section{Scene Graph Generation}
+
+[Add that we use scannet labels to embed rather than nyu40 because its more descriptive / larger more precise vocabulary than nyu40]
+[specify that for clip we are using the huggingface implementation]
+
+[Add figure here] (each step summarized)
+
+We aim produce semantically meaningful graph representations of the ScanNet indoor scenes. 
+[best possible preserve scene structure / translate all the important pointcloud information into a scene graph]
+To achieve this, we let graph nodes represent segmented objects in the scene, and graph edges represent proximity, such that nearby nodes are connected by an edge. We note that there is no such "ground truth" representation, since scene graph generation requires some design choices. More specifically, to construct a graph representation $G = (V, A, E)$, the following components must be defined:
+
+\begin{enumerate}
+    \item \textbf{Node features, $V \in \mathbb{R}^{n \times D_V}$: } the graph contains $n$ nodes with $D$-dimensional embedding, which encodes information about the object it represents.
+    \item \textbf{Adjacency, $A \in \mathbb{R}^{n \times n}$:} the graph edges are defined in an $n \times n$ adjacency matrix, which encodes information about which nodes are connected. Node connectivity can represent any type of node similarity, such as proximity, visual similarity, semantic similarity, functional similarity, etc.
+    \item \textbf{Edge features, $E \in \mathbb{R}^{|A| \times D_E} $: } Optionally, edge embeddings $E$ (which represent edge features), can also be defined. An example of edge labels could be the description of the relation between nodes, such as "next to", "inside", "above", "same color", "same function", ...
+\end{enumerate}
+
+The following sections detail the scene graph generation method used in this paper.
+
+\subsection{Node features}
+We initialize the node embeddings with CLIP-embedded images of the object of interest. However, as each object may appear in many RGB-D frames under different views, we must select which views to embed, and how to combine these into a single node embedding.
+
+\bigskip
+\noindent
+\textbf{View Selection}
+Given the high frame rate of the image capture, we discard every other RGB-D image in each scene to speed up the data processing. The best views for each object are then selected by calculating a "view score": firstly, we use the 3D pointcloud segmentation to obtain the 3D-coordinates of a tight, axis-aligned bounding box for each object in the scene. The coordinates of the bounding box corners are then projected into each RGB-frame. Projecting the bounding box corners into each frame allows us to determine whether the object is fully visible in the frame, or only partly visible. Then, for each object in the scene, we rank views according the following score $s$:
+
+\begin{equation*}
+    s = \frac{n}{w \times h} \times \frac{b}{8},
+\end{equation*}
+
+where $n$ is the number of pixels occupied by the object in the frame, $w$ and $h$ are the width and height of the frame and $b$ is the number of bounding box corners visible in the frame (out of 8 possible corners). The first term in this score is the "size term", which represents how much space the object takes up in the frame (the larger the object, the better). The second term is the "visibility term", which represents how much of the total object is visible in the frame (the entire object is better than only part of the object). Hence a score close to $1$ signals a close-up view of a fully visible object, whereas a score close to $0$ signals either a distant view, or a partial view, or both. This method therefore attributes low scores to zoomed-in partial views and distant views, and large scores to large, complete views of an object. We note that weights could be added to both the "size" and "visibility" components of the score to weigh their relative importance.
+
++ Using the 3D bb corner projections assumes that the entire object is visible in the frame dataset (if only half an object was photographed, the bb will obviously be smaller than GT since the 3D segmentation is obtained from the 2D segmentation)
+
+\bigskip
+\noindent
+\textbf{Cropping}
+For each object, we then select the top-k views and crop these around the object of interest. Three different cropping methods were tested: 1) a tight, non-square crop around the object with all pixels not belonging to the object blacked out, 2) a tight crop, non-square around the object with no further changes, 3) a square crop around the object, resized to $224 \times 224$.
+
+Figure XX illustrates these cropping methods:
+
+\bigskip
+\noindent
+\textbf{Embedding}
+Since CLIP was trained on square images and can only embed square images, for cropping methods 1) and 2) the standard CLIP pre-processing was used: resizing the shortest edge to 224 and randomly selecting a $224 \times 224$ crop within the image. Then we CLIP embed the top-k views and aggregate them with a score-weighted average, yielding a single CLIP-embedding for each object that captures view variability and gives a more rich embedding to the object node.
+
+Section xx quantitatively compares the weighted CLIP embeddings obtained using each of the cropping methods described above.
+
++ justify why we use CLIP (brings text + images into the same embedding space, hopefully in semantically meaningful, should be a good initialization for a model).
+
+\subsection{Adjacency}
+Adjacency matrix is the component of the graph which allows us to encode/transfer 3D information of the scene into the graph. The adjacency matrix in the provided dataset was chosen to represent spatial proximity of nodes. Therefore, the shortest distance between each object should be calculated, and edges should exist only between objects with a distance less than some predetermined heuristic threshold. Several methods were explored to calculate or approximate the shortest distance between objects.
+Figure XX illustrates these methods.
+
+\bigskip
+\noindent
+\textbf{Naive approach: Pointcloud-based shortest distance}
+First, a naive approach was implemented: the shortest distance between two objects was calculated by computing the distance between all 3D points of 2 object pointclouds. Although this is the most accurate measure of shortest distance, it is too computationally expensive and also very sensitive to outliers. We therefore decided to approximate the shortest distance between two objects rather than accurately computing it.
+
+\bigskip
+\noindent
+\textbf{Approximation approach: Axis-aligned bounding box shortest distance}
+To approximate the shortest distance between two pointclouds, we obtain the axis-aligned bounding box for each object from the 3D scene segmentation. The shortest distance between two axis-aligned boundign boxes can then be calculated as:
+
+
+A threshold of 0.2 was selected heuristically. We note that this measure is not very precise. Results can be changed by varying the threshold.
+
+The adjacency matrix is symmetrized to ensure bidirectional relationships between nodes. Additionally, self-loops are added to represent self-relationships.
+
+\subsection{Edge features}
+We compare two learning-based approaches to annotate/predict the edge label of the edges determined above.
+
+\bigskip
+\noindent
+\textbf{Random Forest}
+
+\bigskip
+\noindent
+\textbf{MLP}
+
+
+
+
+
+
+\newpage
+\section{VQA Models}
+%-----------------------------
+% VQA MODEL METHODS
+%-----------------------------
+
+Figure XX illustrates the general 3D-VQA classification method. VQA models take as inputs a question and a scene graph (generated as described above), and outputs the most relevant object in the scene to the question. Regardless of architecture, any VQA model must have the following components: 1) a scene encoder, 2) a question encoder, 3) object selection head, which combine scene and question encodings to select the output object.
+
+We explore solutions for each of these components, and compare the performance of three distinct families of model architectures: a baseline model (no learning), a GNN-only (learning only for scene encoding) model, and a transformer-based model (learning for scene encoding, question encoding and selection head). Some of the components are shared across models, this helps us identify which components of the final proposed model are actually helpful.
+
+The following sections detail the architecture and design choices of each model.
+
+\subsection{Baseline Model}
+The baseline model is used to establish a lower bound on the performance of the VQA task. The baseline model is illustrated in Figure XXX. It does not require any learning, and relies solely on the pre-computed CLIP embeddings of the objects in the scene and the question. The model consists of the following components:
+
+\textbf{Scene Encoder:} The scenes are encoded as the set of its ScanNet-SG scene graph nodes (without edges, obtained as described in section XXX).
+
+\textbf{Question Encoder:} The question encoding is the sentence-level CLIP embedding of the question.
+
+\textbf{Object Selection Head:} The model computes the cosine similarity between the question embedding and the node embeddings of the scene graph. The node with the highest similarity is selected as the output object.
+
+While this baseline model is a simple and common approach to the VQA task [ref], it has some important limitations. Firslty, the scene encoder encurs a large information loss: by discarding edges, it does not encode any 3D or structural information about the scene. It therefore does not capture the overall room layout, and lacks contextual awareness. This implies that objects with similar appearance may have indifferentiable encodings, regardless of their context and neighbouring objects, and that the overall scene encoding does not change if even if objects are moved around. For example, the baseline model may not be able to differentiate between a chair in the middle of the room and a chair in the corner of the room, as the scene representation would be the same. This means that while semantic accuracy might be high, instance accuracy is expected to be low. Furthermore, the model has no learning mechanism, meaning that the scene representation cannot adapt to new questions.
+
+\subsection{GNN-only Model}
+To address these limitations, we explore the GNN-only model, which uses a graph neural network to learn better node embeddings. The model is illustrated in Figure XXX. The model consists of the following components:
+
+\textbf{Scene Encoder:} The ScanNet-SG scene graphs are passed through a dimension-preserving GNN. The GNN updates node embeddings iteratively by aggregating information from neighbouring nodes. This ensures each node becomes aware of its context.
+
+- What type of GNN architecture? How many layers? How many hidden units? What activation function? What aggregation function? What loss function?
+
+\textbf{Question Encoder:} Same as the baseline model.
+
+\textbf{Object Selection Head:} Same as the baseline model.
+
+The GNN-only model is expected to perform better than the baseline model, as structural information is added to the scene encoding. This model should therefore better differentiate between objects with similar appearance but different context. Furthermore, the scene encoder is learned, meaning that the model can learn to adapt scene encodings to better match the question encoding. In other words, the model can learn to align the question and scene embeddings in a learned way, rather than a fixed way as in the baseline model. However, the GNN-only model still has some limitations. Firstly, the model is still limited by the question encoding and object selection, which are not learned. This means that the model may struggle  with questions that are not well-aligned with the learned scene graph.
+
+\subsection{Transformer-based Models}
+
+The transformer-based model incorporates learning for the question encoding and object selection head. It is illustrated in Figure XXX. The idea was to create a model with more degrees of freedom than the GNN-only model: instead of trying to align the fixed question embeddings and learned scene embeddings using cosine similarity, the model learns to predict a  score for each object instance in the scene based on the learned scene and question embeddings. High score indicates high relevance to the question.
+
+The model is composed of four main components: 1) a question encoder, 2) a scene graph encoder, 3) a cross-attention mechanism, and 4) a classifier.
+
+The question encoder is a transformer-based model which encodes the question into a fixed-size vector. The scene graph encoder is a graph neural network which encodes the scene graph into a fixed-size vector. The classifier is a multi-layer perceptron which takes the question and scene graph embeddings as input and outputs the most relevant object in the scene to the question.
+
+How many layers? How many hidden units? What activation function? What aggregation function? What edge update function? What loss function?
+
+\subsection{Loss function}
+
+\textbf{Cross-entropy loss}
+\textbf{Multi-object Cross-entropy loss}
+\textbf{Focal loss}

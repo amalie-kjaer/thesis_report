@@ -1,0 +1,137 @@
+%% ----------------------------------------------------------------------------
+% CVG SA/MA thesis template
+%
+% Created 03/08/2024 by Tobias Fischer
+%% ----------------------------------------------------------------------------
+\newpage
+\chapter{Experiments}
+
+In this section, we detail experimental methods and results.
+
+
+\section{Scene Graph Generation}
+
+In order to train a successful 3D-VQA model, we must ensure that its input data, namely generated scene graphs and questions, are of high quality. This section empirically evaluates the impact of different design choices on the quality of the generated scene graphs. We evaluate the design choices for scene graph nodes and edges separately, and choose the best performing parameters for the proposed scene graph dataset. For scene graph nodes, we evaluate the effects of different cropping methods, k-values, and visibility scores on the quality of the node embeddings. For scene graph edges, we evaluate the impact of different threshold values on the quality of the edges in the scene graphs.
+
+All experiments in this section are performed on a smaller subset of the dataset, consisting of XXX scenes, with a total of XXX objects across scenes.
+
+\subsection{Node quality evaluation}
+We evaluate the impact of different cropping methods, k-values and visibility scores on the quality of the generated node CLIP-embeddings. The following paragraphs detail the methods and parameters considered for each of these design choices.
+
+\bigskip \noindent
+\textbf{Cropping method:}
+\textcolor{red}{\textbf{Add the information below in a table, rather than a list?}}
+
+We compare the impact of the following cropping methods on node embedding quality (illustrated in Figure XXX):
+\begin{enumerate}
+    \item a tight, rectangular crop around the object with all background pixels masked out. With this method, the object is centered in the image, and the background is removed. However, CLIP was trained on square images with no background removal. To adapt rectangular crops to CLIP, we use the resizing method described in the original CLIP paper [XXX]: the crop is resized to $224$ in its minimum dimension, and then randomly cropped to a $224 \times 224$ square.
+    
+    \item A tight, rectangular crop around the object with no further changes. With this method, the object is centered in the image. However, the background is not removed, meaning other surrounding objects could contribute to the embedding, and the image is not square. The rectangular crops are resized as in the original CLIP paper [XXX].
+    
+    \item A square crop centred around the object, resized to $224 \times 224$. With this method, the crop is square and correctly sized, and no further processing is needed. However, the background is not removed and the non-tight crop means other surrounding objects might contribute to the node embedding.
+    
+    \item A tight, rectangular crop, resized to $224 \times 224$. With this method, the crop is tight around the object (fewer surrounding objects included in the crop). However, the resized crops distort the image, and CLIP was not trained on distorted images.
+\end{enumerate}
+
+\textcolor{red}{\textbf{Add cropping methods figure}}
+
+\bigskip \noindent
+\textbf{k-value:}
+We also evaluate the impact of different k-values on the quality of the scene graph nodes. The k-value determines how many images of the object will be considered when generating the scene graph node. A higher value of k could result in a more accurate representation of the object, but could also introduce noise as different views may have different lighting conditions, occlusions, etc, leading to very different embeddings, and averaging them out could result in a less accurate representation. Increasing k-value also highly increases the computational cost, since computing the CLIP-embedding over more images is more expensive. It is therefore important to find the optimal k-value that balances these trade-offs.
+
+\bigskip
+\textbf{Visibility score:}
+
+\textcolor{red}{\textbf{TODO: viz score experiment}}
+- visibility score with equal weights, multiplied
+- visibility score with equal weights, summed
+- visibility score with higher weight for object size, summed
+- visibility score with higher weight for object visibility, summed
+- similarity score
+
+We need to correlate text and image so the image should be as close to its relevant text description as possible so we can query the relevant object.
+
+We would like to have node embeddings that are as "pure" as possible. This means that the embedding of the object should be as close as possible to the embedding of the object label, and not be influenced by surrounding objects. Context awareness can be integrated later but the input graph should be as "clean" as possble.
+
+To evaluate the comparative quality of these cropping methods and k-values, we perform the following experiment: first, we generate scene graphs using each of the three cropping methods, with $k=1$, $k=3$ and $k=10$ respectively. We therefore have a total of 9 different scene graph node generation methods. Then, we CLIP-embed all the object labels in the scene, and calculate the similarity between the embeddings of the object and the embeddings of the object labels. For each object, we select the label with the highest similarity, and compare it to the ground truth label. We calculate the accuracy of the scene graph nodes for each of the 9 methods, and choose the best performing method for the final model.  Note that we only use semantic accuracy (since there is no context-awareness mechanism or learning when we consider nodes only with the baseline model) to evaluate the quality of the scene graph nodes. We therefore ignore whether the correct instance of the object was most similar, but rather whether the correct object label was selected.
+
+This experiment allows us to determine the best cropping method and k-value for the final model since we can quantify the percentage of nodes that are embedded close to their label in the CLIP embedding space (and hence truly representative of the object). For example, if the node CLIP-embedding for the object "sink" is actually semantically closer to the word "mirror", this would be a poor quality node, and would likely lead to incorrect answers in the 3D-VQA model. Table XX shows the results of this experiment.
+
+
+\begin{table}[htbp]
+    \centering
+    \caption{\textcolor{red}{with multiplicative similarity score}}
+    \begin{tabular}{l|lll|}
+    \cline{2-4}
+                                                   & \multicolumn{3}{c|}{\textbf{k-value}} \\ \hline
+    \multicolumn{1}{|c|}{\textbf{Cropping method}} & 1        & 3       & 10               \\ \hline
+    \multicolumn{1}{|l|}{Tight masked crop}        & 49.5     & 50.1    & 52.1             \\
+    \multicolumn{1}{|l|}{Tight crop}               & 57.6     & 58.9    & 60.3             \\
+    \multicolumn{1}{|l|}{Square crop}              & 57.1     & 58.3    & \textbf{62.2}    \\
+    \multicolumn{1}{|l|}{Tight resized crop}       & 56.2     &         &                  \\ \hline
+    \end{tabular}
+\end{table}
+
+\textcolor{red}{\textbf{complete table}}
+
+\textcolor{red}{\textbf{add results for method 3, k=25}}
+
+
+All methods benefit from a higher k-value, but the tight crop method with $k=10$ performs best. This is likely because...
+
+The best score achieved (Table XXX) is fairly low, which indicates that the CLIP-embedding of the object is not very close to the CLIP-embedding of the object label. The experimental examples in Figure XXX provide some insight into why this might be the case.
+
+\bigskip
+\noindent
+\textbf{Interpretation}
+\textcolor{red}{\textbf{Include examples of bad embeddings vs. good embeddings}}
+
+There are some inherent limitations to the CLIP method, but this is still a good starting point since it allows us to already compare the images of the object with text.
+
+The experiments also highlight the necessity of including some learning into the model, because the CLIP-embedding of the object is not very close to the CLIP-embedding of the object label. And this label task is easier than the question task, as shown in Figure XXX.
+
+\textcolor{red}{\textbf{can add experiment to show that CLIP(answer) accuracy is lower when CLIP(question) is lower.
+To do so, do an exp with the worse nodes+edges and one with the best node+edeges and show that the accuracy is lower for the worse nodes+edges.
+Ie. this experiment is a good way to evaluate whether the node embedding is good and to select the best node embedding}}
+
+\subsection{Edges}
+
+\textcolor{red}{\textbf{threshold value experiment}}
+Simple GNN model -> show that chosen threshold is better than random edges.
+Also show that edges can have a huge impact on the final answer --> must be chosen carefully.
+
+
+\section{Visual Question Answering}
+
+
+\textcolor{red}{\textbf{WRITE PLAN FOR EXPERIMENTS - WHICH ONES NEED TO BE REDONE / INCLUDED / MODIFIED}}
+
+Object selection block: CLIP(question) vs CLIP(answer) --> similarity with static embeddings does not work well - we show that CLIP(question) does not really capture the same meaning as CLIP(answer)
+
+Hyperparameter tuning gives:
+LR
+Batch size
+Adam optimizer
+Loss function
+Number of epochs
+
+Dataset split:
+
+Evaluation metrics:
+
+\subsection{Results}
+
+compare performance of all 3 models with the best node embeddings determined above + the best threshold determined above.
++ can include GraphVQA results (with no training)
+
+analyse results + why each method is better / worse
+
+Overall, there is a overfitting problem. to attempt to overcome this, we report the results of the best performing model with the following changes: 
+normalization
+dropout
+L2 regularization
+changing loss function, ...
+
+
+downsizing embedding
+word-level embedding (rather than last layer)
