@@ -114,31 +114,64 @@ Also show that edges can have a huge impact on the final answer --> must be chos
 \subsection{Performance on proposed model}
 \textcolor{red}{\textbf{Prove that poor design performs worse than good design}}
 
+\subsection{Edge classification}
 
-\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VQA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Visual Question Answering Model}
 
-We incrementally build up the proposed model the baseline, adding complexity/degrees of freedom to the model at each step.
+In this section, we assess the performance of each model described in section XXX on the ScanSG dataset. We evaluate the performance of the baseline model, the baseline + GNN model, the proposed ScanSG-GNN model, and the proposed ScanSG-Transformer model. The dataset split, evaluation metrics, and hyperparameters common to all models are described below. The specific details of each model are described in the relevant sections, such that the results can be reproduced.
 
-Training settings: LR/BS/optimizer/loss function/epochs/dataset/hyperparameters implementation
+\bigskip
+\noindent \textbf{Dataset}
+The train/test split from the original ScanQA paper [XXX] is used. Questions with multiple answers are removed, such that each question has exactly one answer. The pre-processed dataset consists of 21,081 questions about 626 scenes. The training set consits of $92\%$ of the dataset with 19,500 questions about 555 scenes. The test set consists of the remaining $8\%$ with 1,581 questions about 71 scenes. The scenes in the training and test set are kept separate, such that during testing, the model sees new questions about unseen scenes.
 
+
+\bigskip
+\noindent \textbf{Hyperparameters}
+For the baseline model, no training is required, hence none of the following hyperparameters are relevant. For all other models, a batch size of $64$ was used for all experiments. The Adam optimizer was used with a learning rate tuned to each model. The loss function used was the cross-entropy loss. The models were trained for $300$ epochs.
+
+\bigskip
+\noindent \textbf{Evaluation metrics}
+We compare the performance of each model on the test set of the ScanSG dataset, and report the results in terms of EM@1, EM@5 and EM@10. EM@K is the percentage of questions for which the correct answer is in the top-K predicted answers. We report three measures of EM@K to understand the performance at different levels of accuracy, and monitor these metrics during training to understand how the model is learning. An increasing EM@10 score indicates that the model is learning to predict the correct answer with higher confidence, while an increasing EM@1 score indicates that the model is learning to predict the correct answer with higher accuracy.
+We also report the train and test loss of the model during training, to understand how the model is learning and whether it is overfitting. Table XXX summarizes the results achieved by each model.
 
 \begin{table}[h!]
     \centering
-    \caption{\textcolor{red}{add title}}
-    \begin{tabular}{|l|c|}
+    \caption{\textcolor{red}{\textbf{Complete table}}}
+    \begin{tabular}{|l|c|l|l|}
     \hline
-    \textbf{Model}         & \textbf{Test accuracy} \\ \hline
-    Baseline               & 28.1                   \\ \hline
-    Baseline + GNN         & \multicolumn{1}{l|}{}  \\ \hline
-    ScanSG-GNN             & 25.5                   \\ \hline
-    ScanSG-Transformer     & \textbf{46.4}          \\ \hline
-    GraphVQA (pre-trained) & \multicolumn{1}{l|}{}  \\ \hline
+    \textbf{Model}         & \textbf{EM@1} & \textbf{EM@5} & \textbf{EM@10} \\ \hline
+    Baseline               & 28.1                   &               &                \\ \hline
+    Baseline + GNN         & \multicolumn{1}{l|}{}  &               &                \\ \hline
+    ScanSG-GNN             & 25.5                   &               &                \\ \hline
+    ScanSG-Transformer     & \textbf{46.4}          &               &                \\ \hline
+    GraphVQA (pre-trained) & \multicolumn{1}{l|}{}  &               &                \\ \hline
     \end{tabular}
 \end{table}
 
-\textcolor{red}{\textbf{Complete table}}
+\subsection{Baseline}
+Since the baseline model does not require any training, it is simply evaluated on the test set of the ScanSG dataset.
 
+Semantic accuracy:
+Instance accuracy:
+
+Accuracy per question type:
+some questions are easier than others?
+does it only get questions right where the answer appears in the question?
+
+
+\subsection{Baseline + GNN}
+
+\subsection{ScanSG-GNN}
+
+\subsection{ScanSG-Transformer}
+
+\subsection{Addressing Overfitting}
+
+
+Methods? :
 
 1) start from the baseline model --> accuracy is quite low because 1-no edge information/context awareness 2-no learning (relies on static, pre-computed embeddings and cannot adapt to the data). Object selection block: CLIP(question) vs CLIP(answer) --> similarity with static embeddings does not work well - we show that CLIP(question) does not really capture the same meaning as CLIP(answer)
 
@@ -147,9 +180,6 @@ Training settings: LR/BS/optimizer/loss function/epochs/dataset/hyperparameters 
 3) add learning to similarity score and text embedding --> proposed model
 
 4) use transformer instead of GNN for scene encoding (performs better but doesnt learn from graph structure but rather language priors...), two scenes with objects in different positions would have the same scene representation.
-
-
-\textcolor{red}{\textbf{Show results for other evaluation metrics: EM@5, EM@10, loss}}
 
 
 \textcolor{red}{\textbf{Include plot which shows overfitting problem}}

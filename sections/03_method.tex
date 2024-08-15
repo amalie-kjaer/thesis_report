@@ -8,6 +8,9 @@ Note: In most existing SSG methods, the scene must first be segmented. However, 
 Note: we remove scenes with segmentation errors (some segmented objects do not appear in any of the images -- specifically scenes 180, 279, 305, 530, 597)
 [Plot scene / label distribution]
 
+Add some statistics about the dataset: number of scenes, number of objects, number of labels, number of instances...
+distribution of room types / room sizes / object numbers ==> get a feel for how diverse the scenes are.
+
 \noindent
 \textbf{ScanQA}
 The ScanQA dataset consists of xxx questions about the ScanNet scenes.
@@ -17,6 +20,9 @@ We prepare x different question datasets to experiment on: 1) easy 2) hard 3) co
 Limitations: although ScanQA is designed for 3D-VQA, most of the questions do not require 3D information to answer (ie could be answered with 2D images only). This is because the questions are generated from the 2D images of the scenes (check this fact?). Ie. no questions about distances, paths, dimensions, geometry, etc.
 
 Removed multiple answer questions (lower performance on this)
+
+Add distribution of questions after cleaning the dataset (similar diagram to the one in the ScanQA paper).
+Also add the distribution of answers.
 
 \newpage
 \chapter{Method}
@@ -145,6 +151,8 @@ Figure XX illustrates the general 3D-VQA classification method. VQA models take 
 We explore solutions for each of these components, and compare the performance of three distinct families of model architectures: a baseline model (no learning), a GNN-only (learning only for scene encoding) model, and a transformer-based model (learning for scene encoding, question encoding and selection head). Some of the components are shared across models, this helps us identify which components of the final proposed model are actually helpful.
 
 The following sections detail the architecture and design choices of each model.
+
+We incrementally build up the proposed model the baseline, adding complexity/degrees of freedom to the model at each step.
 
 \subsection{Baseline Model}
 The baseline model is used to establish a lower bound on the performance of the VQA task. The baseline model is illustrated in Figure XXX. It does not require any learning, and relies solely on the pre-computed CLIP embeddings of the objects in the scene and the question. The model consists of the following components:
