@@ -127,6 +127,14 @@ The adjacency matrix is symmetrized to ensure bidirectional relationships betwee
 \subsection{Edge features}
 We compare two learning-based approaches to annotate/predict the edge label of the edges determined above.
 
+We hand-label 275 edges from the following prepositions list:
+on/above, under
+inside, contains
+next to
+attached to, supporting
+
+However this dataset is strongly imbalanced (mostly next to). 
+
 \bigskip
 \noindent
 \textbf{Random Forest}
@@ -154,7 +162,7 @@ The following sections detail the architecture and design choices of each model.
 
 We incrementally build up the proposed model the baseline, adding complexity/degrees of freedom to the model at each step.
 
-\subsection{Baseline Model}
+\subsection{Baseline}
 The baseline model is used to establish a lower bound on the performance of the VQA task. The baseline model is illustrated in Figure XXX. It does not require any learning, and relies solely on the pre-computed CLIP embeddings of the objects in the scene and the question. The model consists of the following components:
 
 \textbf{Scene Encoder:} The scenes are encoded as the set of its ScanNet-SG scene graph nodes (without edges, obtained as described in section XXX).
@@ -165,8 +173,8 @@ The baseline model is used to establish a lower bound on the performance of the 
 
 While this baseline model is a simple and common approach to the VQA task [ref], it has some important limitations. Firslty, the scene encoder encurs a large information loss: by discarding edges, it does not encode any 3D or structural information about the scene. It therefore does not capture the overall room layout, and lacks contextual awareness. This implies that objects with similar appearance may have indifferentiable encodings, regardless of their context and neighbouring objects, and that the overall scene encoding does not change if even if objects are moved around. For example, the baseline model may not be able to differentiate between a chair in the middle of the room and a chair in the corner of the room, as the scene representation would be the same. This means that while semantic accuracy might be high, instance accuracy is expected to be low. Furthermore, the model has no learning mechanism, meaning that the scene representation cannot adapt to new questions.
 
-\subsection{GNN-only Model}
-To address these limitations, we explore the GNN-only model, which uses a graph neural network to learn better node embeddings. The model is illustrated in Figure XXX. The model consists of the following components:
+\subsection{Baseline + GNN}
+To address these limitations, we explore the Baseline + GNN model, which uses a graph neural network to learn better node embeddings. The model is illustrated in Figure XXX. The model consists of the following components:
 
 \textbf{Scene Encoder:} The ScanNet-SG scene graphs are passed through a dimension-preserving GNN. The GNN updates node embeddings iteratively by aggregating information from neighbouring nodes. This ensures each node becomes aware of its context.
 
@@ -178,7 +186,7 @@ To address these limitations, we explore the GNN-only model, which uses a graph 
 
 The GNN-only model is expected to perform better than the baseline model, as structural information is added to the scene encoding. This model should therefore better differentiate between objects with similar appearance but different context. Furthermore, the scene encoder is learned, meaning that the model can learn to adapt scene encodings to better match the question encoding. In other words, the model can learn to align the question and scene embeddings in a learned way, rather than a fixed way as in the baseline model. However, the GNN-only model still has some limitations. Firstly, the model is still limited by the question encoding and object selection, which are not learned. This means that the model may struggle  with questions that are not well-aligned with the learned scene graph.
 
-\subsection{Transformer-based Models}
+\subsection{ScanSG-GNN}
 
 The transformer-based model incorporates learning for the question encoding and object selection head. It is illustrated in Figure XXX. The idea was to create a model with more degrees of freedom than the GNN-only model: instead of trying to align the fixed question embeddings and learned scene embeddings using cosine similarity, the model learns to predict a  score for each object instance in the scene based on the learned scene and question embeddings. High score indicates high relevance to the question.
 
@@ -187,6 +195,8 @@ The model is composed of four main components: 1) a question encoder, 2) a scene
 The question encoder is a transformer-based model which encodes the question into a fixed-size vector. The scene graph encoder is a graph neural network which encodes the scene graph into a fixed-size vector. The classifier is a multi-layer perceptron which takes the question and scene graph embeddings as input and outputs the most relevant object in the scene to the question.
 
 How many layers? How many hidden units? What activation function? What aggregation function? What edge update function? What loss function?
+
+\subsection{ScanSG-Transformer}
 
 \subsection{Loss function}
 
