@@ -6,9 +6,13 @@
 \newpage
 \chapter{Experiments}
 
+[We prepare x different question datasets to experiment on: 1) easy 2) hard 3) complete/mixed 4) constant scenes]
+
 In this section, we detail experimental methods and results for the generation of the ScanSG dataset and the proposed ScanSG-Transformer model.
 
 \section{Scene Graph Generation}
+
+[Note: we remove scenes with segmentation errors (some segmented objects do not appear in any of the images -- specifically scenes 180, 279, 305, 530, 597)]
 
 In order to train a successful 3D-VQA model, we must ensure that its input data, namely generated scene graphs and questions, are of high quality. This section empirically evaluates the impact of different design choices on the quality of the generated scene graphs. We evaluate the design choices for scene graph nodes and edges separately, and choose the best performing parameters for the proposed scene graph dataset. For scene graph nodes, we evaluate the effects of different cropping methods, k-values, and visibility scores on the quality of the node embeddings. For scene graph edges, we evaluate the impact of different threshold values on the quality of the edges in the scene graphs.
 
@@ -67,8 +71,8 @@ We also evaluate the impact of different k-values on the quality of the scene gr
 \begin{enumerate}
     \item $s_1 = \frac{n}{w \times h} \times \frac{b}{8}$
     \item $s_2 = w_p \frac{n}{w \times h} + w_c \frac{b}{8}$ with $w_p = 1$, $w_c = 1$
-    \item $s_2$ with $w_p = 1$, $w_c = 0$
-    \item $s_2$ with $w_p = 0$, $w_c = 1$
+    \item $s_2$ with $w_p = 100$, $w_c = 1$
+    \item $s_2$ with $w_p = 1$, $w_c = 100$
 \end{enumerate}
 
 To evaluate the comparative quality of these cropping methods and k-values, we perform the following experiment: first, we generate scene graphs using each of the three cropping methods, with $k=1$, $k=3$ and $k=10$ respectively. We therefore have a total of 9 different scene graph node generation methods. Then, we CLIP-embed all the object labels in the scene, and calculate the similarity between the embeddings of the object crops and the embeddings of the object labels. For each object, we select the label with the highest similarity, and compare it to the ground truth label. We calculate the accuracy of the scene graph nodes for each of the 9 methods, and choose the best performing method for the final model.  Note that we only use semantic accuracy (since there is no context-awareness mechanism or learning in this experiment) to evaluate the quality of the scene graph nodes. The semantic accuracy is the percentage of nodes that are embedded closest to their label in the CLIP embedding space. We repeat this experiment for each visibility score listed above, keeping the cropping method and k-value constant. Tables XX shows the results of this experiment.
@@ -93,7 +97,7 @@ To evaluate the comparative quality of these cropping methods and k-values, we p
     \hline
     \textbf{Visibility Score} & \textbf{Accuracy} \\ \hline
     s1                       & 62.2               \\ \hline
-    s2                        &                   \\ \hline
+    s2                        & 78.2                  \\ \hline
     s3                        &                   \\ \hline
     s4                        &                   \\ \hline
     \end{tabular}
@@ -113,7 +117,7 @@ Table XX shows some examples of inaccurate node embeddings. The table shows the 
 
 \begin{table}[h]
     \centering
-    \caption{}
+    \caption{\textcolor{red}{add the GT and pred label under each image, show them all side by side.}}
     \begin{tabular}{|c|l|l|}
         \hline
         \textbf{Crop} & \textbf{Ground Truth Label} & \textbf{Most Similar Label} \\ \hline
@@ -126,6 +130,8 @@ Table XX shows some examples of inaccurate node embeddings. The table shows the 
 \end{table}
 
 These examples highlight some inherent limitations of the CLIP method. However, we believe CLIP embeddings are still a good starting points as they offer a common embedding for the images in text, which is accurate in most cases.
+
+\textcolor{red}{showcases some of the important clip limitations. we further discuss these limitations in Section XX (Discussion). }
 
 The experiments also highlight the necessity of including some learning into the model, because the CLIP-embedding of the object is not very close to the CLIP-embedding of the object label. And this label task is easier than the question task, as shown in Figure XXX.
 
@@ -158,98 +164,231 @@ Also show that edges can have a huge impact on the final answer --> must be chos
 
 \subsection{Edge Label Classification}
 
+\subsection{Dataset Statistics}
+(Add to appendix instead)
+Average number of edges per graph, "impact window"? ...
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VQA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
+
 \section{Visual Question Answering Model}
 
-In this section, we assess the performance of each model described in section XXX on the ScanSG dataset. We evaluate the performance of the baseline model, the baseline + GNN model, the proposed ScanSG-GNN model, and the proposed ScanSG-Transformer model. The dataset split, evaluation metrics, and hyperparameters common to all models are described below. The specific details of each model are described in the relevant sections, such that the results can be reproduced.
+In this section, we assess the performance of each model described in section XXX on the generated ScanSG dataset. The evaluation metrics and hyperparameters common to all experiments are described below. The details specific to each experiment are described in the relevant sections, such that the results can be reproduced.
+
+\textcolor{red}{
+Our model introduces 2 new components compared to the traditional baseline: edge information + cross-attention. This section investigates the added benefit of each component in the context of the ScanSG + ScanQA dataset.}
+
+\textcolor{red}{
+Turns out cross attention definitely contributes to higher performance (the ScanSG-noGNN always outperforms the baseline). The GNN does not actually contribute, but this is most likely because it is not suited to this dataset. this dataset contains very little data which can actually take advantage of the gnn structure. In conclusion, this is the best we can do with the data we have. Need better Q dataset (maybe one that lists all possible answers!!), and maybe need to think of other ways to embed the nodes (such as owl?).
+}
 
 \subsection{GraphVQA}
+\textcolor{red}{
+what we tried, the results were random on the scenes tested.
+the main issue was that this method relies on the "programs" but we had none for this method.
+so this is also a sign that the model was overfit to their specific dataset.}
 
+\subsection{Experimental Setup}
 
-\subsection{Experimental Setup for Proposed Models}
 \bigskip
 \noindent \textbf{Dataset}
-The train/test split from the original ScanQA paper [XXX] is used. Questions with multiple answers are removed, such that each question has exactly one answer. The pre-processed dataset consists of 21,081 questions about 626 scenes. The training set consits of $92\%$ of the dataset with 19,500 questions about 555 scenes. The test set consists of the remaining $8\%$ with 1,581 questions about 71 scenes. The scenes in the training and test set are kept separate, such that during testing, the model sees new questions about unseen scenes.
-
+The test/train split from the original ScanQA paper [XXX] is used. Multi-answer questions are removed such that each question has exactly one answer. Unless otherwise stated, the training set consits of $92\%$ of the dataset with 19,500 questions about 555 scenes. The test set consists of the remaining $8\%$ with 1,581 questions about 71 scenes. The scenes in the training and test set are kept separate, such that during testing, the model sees new questions about unseen scenes.
 
 \bigskip
 \noindent \textbf{Hyperparameters}
-For the baseline model, no training is required, hence none of the following hyperparameters are relevant. For all other models, a batch size of $64$ was used for all experiments. The Adam optimizer was used with a learning rate tuned to each model. The loss function used was the cross-entropy loss. The models were trained for $300$ epochs.
+For the baseline model, no training is required, hence none of the following hyperparameters are relevant. For all other models, a batch size of $64$ was used for all experiments. The Adam optimizer was used with a learning rate tuned to each model. The loss function used was the cross-entropy loss, except if stated otherwise. The models were trained for $200$ epochs.
 
 \bigskip
 \noindent \textbf{Evaluation metrics}
-We compare the performance of each model on the test set of the ScanSG dataset, and report the results in terms of EM@1, EM@5 and EM@10. EM@K is the percentage of questions for which the correct answer is in the top-K predicted answers. We report three measures of EM@K to understand the performance at different levels of accuracy, and monitor these metrics during training to understand how the model is learning. An increasing EM@10 score indicates that the model is learning to predict the correct answer with higher confidence, while an increasing EM@1 score indicates that the model is learning to predict the correct answer with higher accuracy.
-We also report the train and test loss of the model during training, to understand how the model is learning and whether it is overfitting. Table XXX summarizes the results achieved by each model.
+We compare the performance of each model on the test set of the ScanSG dataset, and report the results in terms of best EM@1 (same as instance accuracy), EM@5 and EM@10 achieved. EM@K is the percentage of questions for which the correct answer is in the top-K predicted answers. We report three measures of EM@K to understand the performance at different levels of accuracy, and monitor these metrics during training to understand how the models learn. An increasing EM@10 score indicates that the model is learning to predict the correct answer with higher confidence, while an increasing EM@1 score indicates that the model is learning to predict the correct answer with higher accuracy. We also report the semantic accuracy, Sem-EM@1. The semantic accuracy indicates correct label prediction, regardless of predicted instance. A high discrepancy between EM@1 and Sem-EM@1 indicates that the model correctly identifies the answer label, but struggles to identify the correct instance of this label. Table XXX summarizes the results achieved by each model.
 
 \bigskip
 \noindent \textbf{Loss function}
-We compare the performance of 3 loss functions, namely the cross-entropy loss, the binary cross-entropy loss and the focal loss.
+The cross-entropy loss is used across all experiments, unless stated otherwise.
+
+\subsection{Model Performance on ScanSG + ScanQA}
+
+Table XX shows the performance of each model on the generated ScanSG+ScanQA dataset.
 
 \begin{table}[h!]
     \centering
-    \caption{\textcolor{red}{\textbf{Complete table}}}
-    \begin{tabular}{|l|c|l|l|}
+    \caption{Performance on the full ScanSG+ScanQA dataset, with node embeddings computed from the top-k image crops, as described in XX.}
+    \begin{tabular}{|l|c|c|c|c|}
     \hline
-    \textbf{Model}         & \textbf{EM@1} & \textbf{EM@5} & \textbf{EM@10} \\ \hline
-    Baseline               & 28.1                   &               &                \\ \hline
-    Baseline + GNN         & \multicolumn{1}{l|}{}  &               &                \\ \hline
-    ScanSG-GNN             & 25.5                   &               &                \\ \hline
-    ScanSG-Transformer     & \textbf{46.4}          &               &                \\ \hline
-    GraphVQA (pre-trained) & \multicolumn{1}{l|}{}  &               &                \\ \hline
+    \textbf{Model}         & \textbf{EM@1} & \textbf{EM@5} & \textbf{EM@10} & \textbf{Sem-EM@1} \\ \hline
+    Baseline               & 28.1 & 59.7 & 73.8 & 36.4  \\ \hline
+    Baseline + GNN         & 12.3 & 38.8 & 54.3 & 18.9  \\ \hline
+    ScanSG-GNN             & 25.3 & 64.2 & 81.2 & 33.5 \\ \hline
+    ScanSG-noGNN           & \textbf{43.6} & \textbf{73.9} & \textbf{86.6} & \textbf{55.7} \\ \hline
     \end{tabular}
 \end{table}
 
-\textcolor{red}{\textbf{add predicted output graph overlaid on scene for each model}}
+\bigskip \noindent
+\textbf{Baseline}
+Since the baseline model does not require any training, it is simply evaluated on the test set of the ScanSG dataset. The hyperparameters and loss function are irrelevant.
+
+The baseline model does not utilize edge information (which encodes scene structure and 3D information), and thus does not have the ability to differentiate between instances of the same object class. This results in a higher semantic accuracy (Sem-EM@1) than instance accuracy (EM@1), as seen in Table XX.
+
+Furthermore, since the baseline relies on static, pre-computed text and image embeddings, it cannot learn from the data. While this makes the baseline a highly generalisable model, it also means that the model performs poorly on samples where CLIP(question) has a dissimilar pre-computed embedding than CLIP(answer). Since CLIP was trained on descriptive captions rather than questions about the image, it is expected that question embeddings may not align with their associated answer.
 
 
-\subsection{Baseline}
-Since the baseline model does not require any training, it is simply evaluated on the test set of the ScanSG dataset.
+\bigskip \noindent
+\textbf{Baseline + GNN}
+\textcolor{red}{Learning rate for Baseline + GNN:}
 
-Semantic accuracy:
-Instance accuracy:
+The Basline+GNN model adds a learning component to the Baseline model, in the form of a GCN which propagates node information to its neighbours, such that each node gains an awareness of its surroundings. This makes for a context-aware scene representation.
 
-Accuracy per question type:
-some questions are easier than others?
-does it only get questions right where the answer appears in the question?
+However, Table XX shows that this method performs worse than the simple baseline. This can be explained by the fact that the Baseline + GNN model computes the cosine similarity between a dynamic, learnable embedding (nodes) and a static, pre-computed embedding (question). This method incentivises the model to update node embeddings such that they better align with the questions they answer. However, as some questions have the same answer but very different embeddings, this creates conflicting training examples. Noisy data impedes model learning.
 
-\subsection{Baseline + GNN}
+\textcolor{red}{+ maybe add a figure to illustrate this}
 
+\textcolor{red}{+ also maybe not enough data that actually needs a gnn. pull these two conclusions together in the final conclusion}
 
-\subsection{ScanSG-GNN}
-\textcolor{red}{\textbf{Attention pattern at the best epoch, for test and for train -- find an example where the attention is good for train}}
+\bigskip \noindent
+\textbf{ScanSG-GNN}
+The ScanSG-GNN model adds learnable, word-level text embeddings, and a cross-attention mechanism. The performance of this model is similar to that of the basline model, but with higher confidence (higher EM@5 and EM@10 scores than the baseline).
 
+\bigskip \noindent
+\textbf{ScanSG-noGNN}
+This model is the ScanSG-GNN model stripped of the GNN. The difference between ScanSG-noGNN and the baseline is that there is word-level embedding and a cross-attention mechanism.
 
-\subsection{ScanSG-Transformer}
+This model outperforms the ScanSG-GNN model. However, since it has been stripped of the GNN, it has no context awareness (two scenes with the same objects in different positions would have the same encoding), and should not be able to answer relational questions. This means that the model is not learning the scene structure but rather language priors.
+
+This model performs the best, indicating that the cross-attention mechanism with the word-level embeddings work better than the cosine similarity of embeddings. This also indicates that the GNN does not benefit model performance.
+
+\bigskip
+\noindent
+We note that all models display strong overfitting. \textcolor{red}{add proof in appendix.}
+In the following section, we address the following questions, which arise from the experiment: 1) Can we regularize the ScanSG model to prevent overfitting? 2) Can the overfitting be explained by poor data quality? and 3) Why does the GNN component decrease accuracy?
+
+\textcolor{red}{likely because the gnn is data hungry and there is not that much data that requires information propagation. the hard questions do but also they are likely too hard (even for human, they have many possible answers).}
 
 
 \subsection{Addressing Overfitting}
+The discrepancy between the train and test accuracy (and loss) suggests that the models suffer from overfitting. This is further illustrated in Figures XXX. While the train accuracy increases with increasing number of training epochs, the test accuracy initially increases, and starts to decrease after around 6 epochs. In Figure XXX, the train loss decreases with increasing number of epochs, whereas the test loss initially decreases, and then starts to increase around 6 epochs. This indicates that the model is overfitting to the training data, limiting its generalization to the test data.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.4\textwidth]{images/acc.png}
+%     \caption{}
+%     \label{fig:example}
+% \end{figure}
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.4\textwidth]{images/loss.png}
+%     \caption{}
+%     \label{fig:example}
+% \end{figure}
 
 
-\textcolor{red}{\textbf{Include plot which shows overfitting problem}}
-Overall, there is a overfitting problem. This can either be due to the model (model is too complex, not regularized enough, ...) or the data (not enough data, data is too hard, ...).
+\subsubsection{Model Regularisation}
+Overfitting is commonly caused by a model that is too complex, not regularized enough, not trained on enough data, or trained on poor quality data. To address this issue, we experiment with the following corrective approaches:
+\begin{itemize}
+    \item Weight decay (L2):
+    \item Dropout:
+    \item Increased batch size:
+    \item Decreased LR:
+    \item Normalization:
+    \item Focal loss:
+    \item Decreased model size: Number of parameters: Describe regular model (ScanSG-GNN) vs XS model (ScanSG-GNN-XS) vs. downsized model (ScanSG-GNN-32)
+    \item Architectural changes: Removing some of the building blocks: Without GNN, without textencoder, with scene transformer encoder)
+\end{itemize}
 
-Model changes to attempt to overcome this, we report the results of the best performing model with the following changes: 
-normalization
-dropout
-L2 regularization
-changing loss function, ...
+We retrain the ScanSG-GNN model with these changes on a smaller, $25\%$ of the dataset (5070 questions about 236 scenes). We evaluate the performance of each model with these changes on the test set of the ScanSG dataset, and report the best results in Table XXX.
+
+\begin{table}[h!]
+    \centering
+    \caption{\textcolor{red}{redo these experiments if possible}}
+    \begin{tabular}{l|c|}
+    \cline{2-2}
+                                              & \multicolumn{1}{l|}{\textbf{Test Accuracy}} \\ \hline
+    \multicolumn{1}{|l|}{No changes}          & 20.1                                        \\ \hline
+    \multicolumn{1}{|l|}{Batch size = 512}    & 17.9                                        \\ \hline
+    \multicolumn{1}{|l|}{Weight decay = 1e-3} & 20.6                                        \\ \hline
+    \multicolumn{1}{|l|}{LR = 1e-5}           & 17.5                                        \\ \hline
+    \multicolumn{1}{|l|}{Normalization}       & 12.01                                       \\ \hline
+    \multicolumn{1}{|l|}{Focal Loss}          & 19.0                                        \\ \hline
+    \multicolumn{1}{|l|}{Dropout}             &                                             \\ \hline
+    \multicolumn{1}{|l|}{XS model}            & 19.2                                        \\ \hline
+    \end{tabular}
+    \end{table}
 
 
-\textcolor{red}{\textbf{Add table summarising all the experiments you did to address overfitting}}
+We note that none of the regularization methods described above improved generalization. We therefore investigate the impact of data quality on the model's ability to generalize.
 
-Methods storyline: (and add results here in relevant section)
+\subsection{Model Performance on Ideal Dataset}
+We investigate the impact of the question dataset on model performance.
+For these experiments, we split the ScanQA dataset into the following smaller datasets:
 
-1) start from the baseline model --> accuracy is quite low because 1-no edge information/context awareness 2-no learning (relies on static, pre-computed embeddings and cannot adapt to the data). Object selection block: CLIP(question) vs CLIP(answer) --> similarity with static embeddings does not work well - we show that CLIP(question) does not really capture the same meaning as CLIP(answer)
-
-2) add edge information --> GNN model to propagate edge information / give the scene representation some context awareness - each node inherits information from its neighbouring nodes. but this doesnt work well because we still use the cosine similarity of a dynamic embedding and a static embedding (from question), but while the questions might have the same answer their embeddings could be very different. training GNN-only model incentivises the model to make the object embeddings  similar to the question embeddings from the training set but these could be very different. this means the model 1) receives a lot of noise in the form of the question embeddings and 2) does not learn to adapt to the data.
-
-3) add learning to similarity score and text embedding --> proposed model
-
-4) use transformer instead of GNN for scene encoding (performs better but doesnt learn from graph structure but rather language priors...), two scenes with objects in different positions would have the same scene representation.
+\begin{itemize}
+    \item Easy dataset: contains only questions which contain the answer. Train set: 11806 questions about 555 scenes. Test set: 1083 questions about 71 scenes.
+    \item Hard dataset: contains only questions which do not contain the answer. Train set: 7644 questions about 552 scenes. Test set: 498 questions about 71 scenes.
+    \item Full dataset: contains all questions, same dataset as used in previous experiments.
+\end{itemize}
 
 
+\subsubsection{Ideal Graph Nodes, Full Question Dataset}
+To understand the impact of the node embeddings on the model performance, we embed the object labels into graph nodes, rather than object images. The only difference from the previous experiment are the node embeddings. Table XX shows the results of this experiment.
 
-\textcolor{red}{\textbf{do the following experiment if u have time}}
-downsizing embedding
+\begin{table}[h!]
+    \centering
+    \caption{Performance on the full ScanSG+ScanQA dataset, with node embeddings computed from the object labels}
+    \begin{tabular}{|l|c|l|l|l|}
+    \hline
+    \textbf{Model}         & \textbf{EM@1} & \textbf{EM@5} & \textbf{EM@10}  & \textbf{Sem-EM@1} \\ \hline
+    Baseline               & 50.7 & 74.4 & 82.8 & 62.7 \\ \hline
+    Baseline + GNN         & 16.2 & 45.3 & 62.1 & 24.7 \\ \hline
+    ScanSG-GNN             & 33.1 & 73.1 & 88.0 & 43.6 \\ \hline
+    ScanSG-noGNN           & \textbf{59.0} & \textbf{84.0} & \textbf{92.2} & \textbf{72.4} \\ \hline
+    \end{tabular}
+\end{table}
+
+We note that results are significantly higher across all models, and the overfitting is slightly mitigated \textcolor{red}{add proof}. This shows that poor node embeddings contribute to overfitting, and low performance on the test set. The limitations of CLIP causing this were illustrated in Figure XX, and are further discussed in Section XX.
+These results highlight the importance of high quality node embeddings.
+
+The baseline outperforms the ScanSG-GNN model, and the ScanSG-noGNN is once more the best performing model.
+To understand why this may be the case, we conduct the following experiments.
+
+\subsubsection{Ideal Graph Nodes, Easy Question Dataset}
+
+\begin{table}[h!]
+    \centering
+    \caption{\textcolor{red}{\textbf{Easy Q dataset Add semantic accuracy}}}
+    \begin{tabular}{|l|c|l|l|l|}
+    \hline
+    \textbf{Model}         & \textbf{EM@1} & \textbf{EM@5} & \textbf{EM@10} & \textbf{Sem-EM@1} \\ \hline
+    Baseline               & 67.3 & 91.7 & 96.6 & 83.3 \\ \hline
+    Baseline + GNN         & 19.8 & 47.8 & 63.3 & 31.5 \\ \hline
+    ScanSG-GNN             & 40.9 & 82.5 & 91.7 & 56.6 \\ \hline
+    ScanSG-noGNN           & \textbf{76.0} & \textbf{93.6} & \textbf{97.1} & \textbf{95.0} \\ \hline
+    \end{tabular}
+\end{table}
+
+results significantly higher and overfitting mitigated (show this somehow).
+this method is likely better because we embed the exact label that appear in the question, so if the cross-attention mechanism works well, it just needs to select the word in the question which is also a node label.
+
+\textcolor{red}{add attention pattern for not the best model here!! and show that the model just focuses on the matching word.}
+
++ and conclude that this model is good! (76) for easy input data!
+
+\subsubsection{Ideal Graph Nodes, Hard Question Dataset}
+\begin{table}[h!]
+    \centering
+    \caption{\textcolor{red}{\textbf{Easy Q dataset Add semantic accuracy}}}
+    \begin{tabular}{|l|c|l|l|l|}
+    \hline
+    \textbf{Model}         & \textbf{EM@1} & \textbf{EM@5} & \textbf{EM@10} & \textbf{Sem-EM@1}\\ \hline
+    ScanSG-GNN   & 24.7 & 57.6 & 72.3 & 29.7 \\ \hline
+    ScanSG-noGNN & 34.9 & 62.4 & 77.9 & 43.0 \\ \hline
+    \end{tabular}
+\end{table}
+
+If easy dataset is better with no-GNN because it doesnt need context awareness, maybe hard dataset can actually benefit from gnn module. so we test on hard data only and see if this is still true.
+
+still true - 2 possible explanations for this:
+- either the questions are just too hard and cant be answered (even i cant answer them tbh, there are too many possibilities)
+- gnns are quite data hungry [reference] and there is not much "hard" data in this dataset. \textcolor{red}{to prove this, gradually increase datasize and show that adding more data slightly improves the proplem? maybe even do a projection of how many datapoints you would need?}
+
+Also note that the gap between gnn and no-gnn is much smaller than in previous experiments.
+
+todo: would be useful to take a look at which questions the gnn vs the no-gnn gets wrong.

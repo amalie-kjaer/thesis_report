@@ -1,30 +1,4 @@
 \newpage
-\chapter{Datasets}
-\textbf{ScanNet}
-The ScanNet dataset consists of 1,513 annotated point clouds of 3D-indoor environments, generated from 2,492,518 annotated RGB-D frames. The dataset includes a wide range of spaces such as offices, apartments, bathrooms, classrooms, libraries, and more. It spans both small spaces (e.g., bathrooms, closets) and large spaces (e.g., studio apartments, classrooms). The dataset is annotated with instance-level and semantic-level (NYU40) labels.
-
-Note: In most existing SSG methods, the scene must first be segmented. However, to get a more accurate scene graph dataset, we opt to use the segmentation already provided by ScanNet. we use oracle segmentation (we assume perfect segmentation is available).
-
-Note: we remove scenes with segmentation errors (some segmented objects do not appear in any of the images -- specifically scenes 180, 279, 305, 530, 597)
-[Plot scene / label distribution]
-
-Add some statistics about the dataset: number of scenes, number of objects, number of labels, number of instances...
-distribution of room types / room sizes / object numbers ==> get a feel for how diverse the scenes are.
-
-\noindent
-\textbf{ScanQA}
-The ScanQA dataset consists of xxx questions about the ScanNet scenes.
-We prepare x different question datasets to experiment on: 1) easy 2) hard 3) complete/mixed 4) constant scenes
-[Plot question / answer distribution]
-
-Limitations: although ScanQA is designed for 3D-VQA, most of the questions do not require 3D information to answer (ie could be answered with 2D images only). This is because the questions are generated from the 2D images of the scenes (check this fact?). Ie. no questions about distances, paths, dimensions, geometry, etc.
-
-Removed multiple answer questions (lower performance on this)
-
-Add distribution of questions after cleaning the dataset (similar diagram to the one in the ScanQA paper).
-Also add the distribution of answers.
-
-\newpage
 \chapter{Method}
 
 %-----------------------------
@@ -33,96 +7,101 @@ Also add the distribution of answers.
 % - What problem are you solving formally (inputs, outputs, assumptions)
 % - How are you solving this problem
 %-----------------------------
-This project addresses the task of Visual Question Answering within 3D indoor environments (3D-VQA). 3D-VQA consists in answering open-vocabulary, free-form questions about an environment. For example, given segmented RGB-D images of a hallway and the question "Where did I put my keys?", the 3D-VQA model should be able to locate the keys in the scene and output an accurate response to the question, such as "On top of the drawer at position ($x, y, z$)".
+This project addresses the task of Visual Question Answering within 3D indoor environments (3D-VQA). 3D-VQA consists in answering open-vocabulary, free-form questions about an environment. For example, given segmented RGB-D images of a hallway and the question "Where did I put my keys?", the 3D-VQA model should be able to locate the most relevant object in the scene and output an accurate response to the question, such as "On top of the drawer at position ($x, y, z$)".
 
-The two main challenges of the 3D-VQA task are 1) to create a rich scene representation, often starting from RGB-D frames and 2) to combine this scene representation with a text query to produce an accurate output answer. The 3D-VQA task therefore requires merging different data modalities in a multimodal model to condition the output answer on the given question-scene input pairs.
+The two main challenges of the 3D-VQA task are 1) to create a rich scene representation, often starting from RGB-D frames and 2) to combine scene representations and text queries in a 3D-VQA model producing an accurate output answer. The 3D-VQA task hence requires generating and merging different data modalities in a multimodal model, which conditions output answers on the given question-scene input pairs.
 
-While current research often claims to utilize scene graphs as scene representations, it solely relies on node information, and does not utilize edge information in the VQA model. This means that current methods do not leverage the full potential of scene graphs. Furthermore, existing VQA models often rely solely on pre-trained language-vision models, such as CLIP, to bring the question and scene representation into the same embedding space, lacking a learning mechanism.
+While current research often claims to utilize scene graphs as scene representations, it does not utilize edge information in the 3D-VQA model, and solely relies on node information. This means that current methods do not leverage the full potential of scene graphs, and do not bake any relational or structural information of the scene into its representation. Furthermore, existing 3D-VQA models often rely solely on pre-trained language-vision models, such as CLIP, to bring the question and scene representation into the same embedding space, lacking a learning mechanism. 
 
-To mitigate these limitations, we propose:
+To mitigate these limitations, we propose to develop:
 \begin{enumerate}
-    \item a dataset of scene graphs for the ScanNet dataset (ScanNet-SG), paired with questions about the graphs from the ScanQA dataset. This is, to our knowledge, the first dataset of question-scene graph pairs for 3D indoor environments.
-    \item an end-to-end 3D-VQA classification model which combines graph and text modalities to answer questions about the scene.
+    \item A dataset of scene graphs for the ScanNet dataset (ScanSG), paired with questions from the ScanQA dataset, regarding the graphs. This is, to our knowledge, the first dataset of scene graph-question pairs for 3D indoor environments.
+    \item An end-to-end 3D-VQA classification model (ScanSG-GNN), which combines graph and text modalities to answer questions about the scene.
 \end{enumerate}
 
-We emphasize that our proposed VQA model is a classificaton model, rather than a generation model. This means that the model does not aim to output free-form answers, but rather to solve the task of selecting the object in the scene which is most relevant to the question posed. For example, the question "What color is the chair by the desk" should return the instance of "chair", rather than the answer "the chair is black". In other words, the proposed model returns the object in the scene which is most relevant to the question (where someone should look to answer the question), rather than the actual answer to the question. This classification task is easier to evaluate and interpret than the generation task, and a good starting point for evaluating the model's ability to understand question-scene pairs. Furthermore, solving the classification task first ensures that we can train a model that does not rely on textual priors to answer questions, since the model must focus on instance accuracy rather than semantic accuracy. This forces the model to learn to understand the scene and the question. Our model can be easily extended to a generation model by adding a decoder component to the model.
+It should be noted that the proposed VQA model is a classificaton model, rather than a generation model. Hence, the model does not aim to output free-form answers, but rather solves the task of locating the most relevant object to the question posed. For example, the question "What color is the chair by the desk" should return the relevant instance of "chair", rather than the answer "the chair is black".
+In other words, the proposed model returns the object which answers the question "Where should one look to answer the question?", rather than a free-form answer to the question.
 
-The following sections detail the scene graph generation method used to obtain the ScanNet-SG dataset, as well as the proposed 3D-VQA classification models.
+This classification task is easier to evaluate and interpret than the generation task, and hence a good starting point for evaluating the model's ability to understand question-scene pairs. Furthermore, successfully solving the classification task ensures that the proposed VQA model relies on structural scene understanding rather than textual priors, since a classification model must focus on instance accuracy rather than semantic accuracy. In other words, solving the classification task rather than the generation task forces the model to learn to understand the scene and the question, rather than to learn common sense. Our model can be easily extended to a generation model by adding a decoder component to the model output.
 
+The following sections detail the scene graph generation method used to obtain the ScanSG dataset, as well as the proposed 3D-VQA classification models.
 
+\textcolor{red}{+ in ScanQA paper, it is shown that text generation works MUCH better when it is trained alongside classification. This shows that the classification task is actually super important and the better we can perfect it/understand it, the more likely we are to develop a good generation model using that.} 
 
+\textcolor{red}{+ what makes this task hard is that its basically zero-shot classification!}
 
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Scene Graph Generation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Scene Graph Generation}
 
-[Add that we use scannet labels to embed rather than nyu40 because its more descriptive / larger more precise vocabulary than nyu40]
-[specify that for clip we are using the huggingface implementation]
+\textcolor{red}{[Add figure here w each step summarized, + examples of output scene graph (can also add to appendix)?]}
 
-[Add figure here] (each step summarized)
+We aim produce semantically meaningful graph representations of the ScanNet indoor scenes. The scene representation should simplify the point-cloud representation into a scene graph, while preserving 3D structural information. The 3D structural information differentiates scenes with the same objects placed differently, and hence enables reasoning over the space.
 
-We aim produce semantically meaningful graph representations of the ScanNet indoor scenes. 
-[best possible preserve scene structure / translate all the important pointcloud information into a scene graph]
 To achieve this, we let graph nodes represent segmented objects in the scene, and graph edges represent proximity, such that nearby nodes are connected by an edge. We note that there is no such "ground truth" representation, since scene graph generation requires some design choices. More specifically, to construct a graph representation $G = (V, A, E)$, the following components must be defined:
 
 \begin{enumerate}
-    \item \textbf{Node features, $V \in \mathbb{R}^{n \times D_V}$: } the graph contains $n$ nodes with $D$-dimensional embedding, which encodes information about the object it represents.
-    \item \textbf{Adjacency, $A \in \mathbb{R}^{n \times n}$:} the graph edges are defined in an $n \times n$ adjacency matrix, which encodes information about which nodes are connected. Node connectivity can represent any type of node similarity, such as proximity, visual similarity, semantic similarity, functional similarity, etc.
-    \item \textbf{Edge features, $E \in \mathbb{R}^{|A| \times D_E} $: } Optionally, edge embeddings $E$ (which represent edge features), can also be defined. An example of edge labels could be the description of the relation between nodes, such as "next to", "inside", "above", "same color", "same function", ...
+    \item \textbf{Node features, $V \in \mathbb{R}^{n \times D_V}$: } the graph contains $n$ nodes of $D$-dimensional embedding, which encodes information about the object it represents.
+    \item \textbf{Adjacency, $A \in \mathbb{R}^{n \times n}$:} the graph edges are defined in an $n \times n$ adjacency matrix, which encodes node connectivity. We note that node connectivity can be chosen to represent any type of similarity, such as proximity, visual similarity, semantic similarity or functional similarity.
+    \item \textbf{Edge features, $E \in \mathbb{R}^{n \times n \times D_E} $: } Optionally, $D_E$-dimensional edge features $E$ can also be defined. Edge features could for example encode the relation between nodes, such as "next to", "inside", "above", "same color", or "same function".
 \end{enumerate}
 
-The following sections detail the scene graph generation method used in this paper.
+The following sections detail the heuristics-based method used in this paper to generate ScanSG. We first describe the node feature generation, then the adjacency generation and finally the edge feature generation. Together, these components form the ScanSG dataset.
 
 \subsection{Node features}
-We initialize the node embeddings with CLIP-embedded images of the object of interest. However, as each object may appear in many RGB-D frames under different views, we must select which views to embed, and how to combine these into a single node embedding.
+While existing SGG methods commonly segment the scene as a first step (for an end-to-end method), we opt to use oracle segmentation provided by ScanNet to get a more accurate SG dataset.
+
+We initialize the node embeddings with CLIP-embedded images of the object of interest. However, as each object may appear in many RGB-D frames under different views, we must select which views to embed (\textbf{View Selection}), and how to combine these into a single node embedding (\textbf{Cropping + Embedding}).
+
+\textcolor{red}{+ CLIP embeds the appearance and semantic meaning of the object (color, shape, function, ...). This is great because if we provide a textual description of the object, then its CLIP embedding should be quite close to the image. (CLIP was trained on image-description pairs).}
 
 \bigskip
 \noindent
 \textbf{View Selection}
-Given the high frame rate of the image capture, we discard every other RGB-D image in each scene to speed up the data processing. The best views for each object are then selected by calculating a "view score": firstly, we use the 3D pointcloud segmentation to obtain the 3D-coordinates of a tight, axis-aligned bounding box for each object in the scene. The coordinates of the bounding box corners are then projected into each RGB-frame. Projecting the bounding box corners into each frame allows us to determine whether the object is fully visible in the frame, or only partly visible. Then, for each object in the scene, we rank views according the following score $s$:
+Given the high frame rate of the image capture, we discard every other RGB-D image in each scene to speed up the data processing. We wish to filter out poor object views, and to only consider the top-$k$ views of each object. The top-$k$ views for each object are selected by ranking views based on their view score $s_f$, which we define as:
 
 \begin{equation*}
-    s = \frac{n}{w \times h} \times \frac{b}{8},
+    s_f = \frac{n_f}{w \times h} \times \frac{b_f}{8},
 \end{equation*}
 
-where $n$ is the number of pixels occupied by the object in the frame, $w$ and $h$ are the width and height of the frame and $b$ is the number of bounding box corners visible in the frame (out of 8 possible corners). The first term in this score is the "size term", which represents how much space the object takes up in the frame (the larger the object, the better). The second term is the "visibility term", which represents how much of the total object is visible in the frame (the entire object is better than only part of the object). Hence a score close to $1$ signals a close-up view of a fully visible object, whereas a score close to $0$ signals either a distant view, or a partial view, or both. This method therefore attributes low scores to zoomed-in partial views and distant views, and large scores to large, complete views of an object. We note that weights could be added to both the "size" and "visibility" components of the score to weigh their relative importance.
+\noindent
+where $n_f$ is the number of pixels occupied by the object in the frame $f$, $w$ and $h$ are the width and height of the frame and $b_f$ is the number of bounding box corners visible in the frame (out of 8 possible corners). $b_f$ is obtained by projecting the 3D-coordinates of a tight, axis-aligned object bounding box (from the ScanNet oracle point-cloud segmentation) into each RGB-frame $f$. $b_f = 8$ implies that the entire object is visible in the frame, while $b_f < 8$ implies a partial view of the object.
 
-+ Using the 3D bb corner projections assumes that the entire object is visible in the frame dataset (if only half an object was photographed, the bb will obviously be smaller than GT since the 3D segmentation is obtained from the 2D segmentation)
+We refer to the first term of $s_f$ as the \textit{pixel score}, since it represents how much space the object takes up in the frame (close-up views are preferred). The second term is the \textit{corner score}, which represents how much of the total object is visible in the frame (full views are preferred to partial views). A view score $s_f \approx 1$ implies a close-up view of a fully visible object, whereas $s_f \approx 0$ implies either a distant view, or a partial view, or both.
+
+\bigskip
+\textcolor{red}{[ multiplying vs. adding? if adding, We note that weights could be added to both the "size" and "visibility" components of the score to weigh their relative importance.]}
 
 \bigskip
 \noindent
 \textbf{Cropping}
-For each object, we then select the top-k views and crop these around the object of interest. Three different cropping methods were tested: 1) a tight, non-square crop around the object with all pixels not belonging to the object blacked out, 2) a tight crop, non-square around the object with no further changes, 3) a square crop around the object, resized to $224 \times 224$.
-
-Figure XX illustrates these cropping methods:
+For each object, we then crop the top-$k$ views around the object of interest. In the ScanSG dataset, a square crop centred around the object, and resized to $224 \times 224$ is used. This is because CLIP was trained on this input size. Other cropping methods are explored and compared in section XX.
 
 \bigskip
 \noindent
 \textbf{Embedding}
-Since CLIP was trained on square images and can only embed square images, for cropping methods 1) and 2) the standard CLIP pre-processing was used: resizing the shortest edge to 224 and randomly selecting a $224 \times 224$ crop within the image. Then we CLIP embed the top-k views and aggregate them with a score-weighted average, yielding a single CLIP-embedding for each object that captures view variability and gives a more rich embedding to the object node.
-
-Section xx quantitatively compares the weighted CLIP embeddings obtained using each of the cropping methods described above.
-
-+ justify why we use CLIP (brings text + images into the same embedding space, hopefully in semantically meaningful, should be a good initialization for a model).
+Pre-trained CLIP was chosen to embed images as it brings images and text into the same embedding space, allowing for comparison between the two.
+For each object, the top-$k$ crops are then CLIP-embedded (using the Hugging Face implementation [XX]) and aggregated using the $s_f$-weighted average. This yields a single 512-dimensional CLIP-embedding for each object.
+This aggregated embedding captures view variability, giving the object representation a richer embedding.
 
 \subsection{Adjacency}
-Adjacency matrix is the component of the graph which allows us to encode/transfer 3D information of the scene into the graph. The adjacency matrix in the provided dataset was chosen to represent spatial proximity of nodes. Therefore, the shortest distance between each object should be calculated, and edges should exist only between objects with a distance less than some predetermined heuristic threshold. Several methods were explored to calculate or approximate the shortest distance between objects.
-Figure XX illustrates these methods.
+The adjacency matrix is the graph component encoding 3D information. Edges in the ScanSG dataset represent spatial proximity of nodes. In other words, an edge should connect two nodes if the distance between them is less than some predetermined heuristic threshold.
 
-\bigskip
-\noindent
-\textbf{Naive approach: Pointcloud-based shortest distance}
-First, a naive approach was implemented: the shortest distance between two objects was calculated by computing the distance between all 3D points of 2 object pointclouds. Although this is the most accurate measure of shortest distance, it is too computationally expensive and also very sensitive to outliers. We therefore decided to approximate the shortest distance between two objects rather than accurately computing it.
+\textcolor{red}{+ The threshold method is justified because from scene XX, the object density is pretty consistent across scenes - so a single threshold value should work for all scenes.}
 
-\bigskip
-\noindent
-\textbf{Approximation approach: Axis-aligned bounding box shortest distance}
-To approximate the shortest distance between two pointclouds, we obtain the axis-aligned bounding box for each object from the 3D scene segmentation. The shortest distance between two axis-aligned boundign boxes can then be calculated as:
+To define the adjacency matrix, the shortest distance between all objects in a scene should therefore be calculated.
 
+The naive approach to this problem is to compute the distance between all 3D points of 2 object point-clouds, and to retain the shortest distance. Although this is most accurate method to estimate the shortest distance between two objecs, it is too computationally expensive, and also sensitive to outliers.
 
-A threshold of 0.2 was selected heuristically. We note that this measure is not very precise. Results can be changed by varying the threshold.
+We therefore approximate the shortest distance between two objects by the shortest distance between their axis-aligned 3D bounding boxes. This can be calculated as:
 
-The adjacency matrix is symmetrized to ensure bidirectional relationships between nodes. Additionally, self-loops are added to represent self-relationships.
+\begin{equation*}
+    d = ...
+\end{equation*}
+
+A threshold of 0.2 was selected heuristically. The adjacency matrix was symmetrized to ensure bidirectional relationships between nodes. Additionally, self-loops were added.
+
 
 \subsection{Edge features}
 We compare two learning-based approaches to annotate/predict the edge label of the edges determined above.
@@ -148,11 +127,14 @@ However this dataset is strongly imbalanced (mostly next to).
 
 
 
-\newpage
 \section{VQA Models}
 %-----------------------------
 % VQA MODEL METHODS
 %-----------------------------
+
+[for models, add the number of total parameters]
+[also add details about the GNN you use (GCN with 512 in, 512 out)].
+
 
 Figure XX illustrates the general 3D-VQA classification method. VQA models take as inputs a question and a scene graph (generated as described above), and outputs the most relevant object in the scene to the question. Regardless of architecture, any VQA model must have the following components: 1) a scene encoder, 2) a question encoder, 3) object selection head, which combine scene and question encodings to select the output object.
 
@@ -161,6 +143,7 @@ We explore solutions for each of these components, and compare the performance o
 The following sections detail the architecture and design choices of each model.
 
 We incrementally build up the proposed model the baseline, adding complexity/degrees of freedom to the model at each step.
+
 
 \subsection{Baseline}
 The baseline model is used to establish a lower bound on the performance of the VQA task. The baseline model is illustrated in Figure XXX. It does not require any learning, and relies solely on the pre-computed CLIP embeddings of the objects in the scene and the question. The model consists of the following components:
@@ -197,6 +180,8 @@ The question encoder is a transformer-based model which encodes the question int
 How many layers? How many hidden units? What activation function? What aggregation function? What edge update function? What loss function?
 
 \subsection{ScanSG-Transformer}
+
+\subsection{Batching and Masking}
 
 \subsection{Loss function}
 

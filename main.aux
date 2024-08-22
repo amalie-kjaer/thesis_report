@@ -2,70 +2,89 @@
 \providecommand\hyper@newdestlabel[2]{}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
-\@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduction}{3}{chapter.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduction}{2}{chapter.1}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {chapter}{\numberline {2}Related Work}{5}{chapter.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}Related Work}{3}{chapter.2}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}Visual Question Answering Task (indoor + other)}{5}{section.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}Scene Graphs}{6}{section.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Image-text pretrained models}{6}{section.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Transformer encoder / decoders}{6}{section.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.5}Existing datasets}{6}{section.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {3}Datasets}{7}{chapter.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Visual Question Answering Task (indoor + other)}{3}{section.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}Scene Graphs}{3}{section.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Image-text pretrained models}{4}{section.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Transformer encoder / decoders}{4}{section.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}Datasets}{4}{section.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}ScanNet}{4}{subsection.2.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces Scene type distribution}}{4}{figure.2.1}\protected@file@percent }
+\newlabel{fig:enter-label}{{2.1}{4}{Scene type distribution}{figure.2.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces Object label distribution \textcolor {red}{remove "other" and add to text instead how many "other" were excluded from the top-30}}}{5}{figure.2.2}\protected@file@percent }
+\newlabel{fig:enter-label}{{2.2}{5}{Object label distribution \textcolor {red}{remove "other" and add to text instead how many "other" were excluded from the top-30}}{figure.2.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces scene density distribution}}{5}{figure.2.3}\protected@file@percent }
+\newlabel{fig:enter-label}{{2.3}{5}{scene density distribution}{figure.2.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}ScanQA}{5}{subsection.2.5.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces Most common question types by wording}}{6}{figure.2.4}\protected@file@percent }
+\newlabel{fig:your_label}{{2.4}{6}{Most common question types by wording}{figure.2.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.1}{\ignorespaces Examples of long and short answers from the dataset. \vspace  \bigskipamount }}{6}{table.2.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.5}{\ignorespaces Answer distribution of 30 most common answers. The "other" label groups all other less frequent labels. \textcolor {red}{\textbf  {add other(x) with x number of labels contained here, remove title and x-axis title. also make this figure smaller and cleaner and match color scheme to plot above. IMPORTANT: make it vertical instead of horizontal, more pleasant to read in this document}}}}{7}{figure.2.5}\protected@file@percent }
+\newlabel{fig:your_label}{{2.5}{7}{Answer distribution of 30 most common answers. The "other" label groups all other less frequent labels. \textcolor {red}{\textbf {add other(x) with x number of labels contained here, remove title and x-axis title. also make this figure smaller and cleaner and match color scheme to plot above. IMPORTANT: make it vertical instead of horizontal, more pleasant to read in this document}}}{figure.2.5}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Method}{8}{chapter.3}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {chapter}{\numberline {4}Method}{9}{chapter.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}Scene Graph Generation}{9}{section.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Node features}{9}{subsection.3.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}Adjacency}{10}{subsection.3.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}Edge features}{11}{subsection.3.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}VQA Models}{11}{section.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Baseline}{11}{subsection.3.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Baseline + GNN}{12}{subsection.3.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}ScanSG-GNN}{12}{subsection.3.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.4}ScanSG-Transformer}{12}{subsection.3.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.5}Batching and Masking}{12}{subsection.3.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.6}Loss function}{12}{subsection.3.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Experiments}{13}{chapter.4}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {4.1}Scene Graph Generation}{10}{section.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.1}Node features}{10}{subsection.4.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.2}Adjacency}{11}{subsection.4.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.3}Edge features}{12}{subsection.4.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4.2}VQA Models}{13}{section.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.1}Baseline}{13}{subsection.4.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.2}Baseline + GNN}{14}{subsection.4.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.3}ScanSG-GNN}{14}{subsection.4.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.4}ScanSG-Transformer}{14}{subsection.4.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.5}Loss function}{14}{subsection.4.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {5}Experiments}{15}{chapter.5}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {5.1}Scene Graph Generation}{15}{section.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.1}Node Construction}{15}{subsection.5.1.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5.1}{\ignorespaces Caption 1}}{16}{figure.5.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5.2}{\ignorespaces Caption 2}}{16}{figure.5.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5.3}{\ignorespaces Caption 3}}{16}{figure.5.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5.4}{\ignorespaces Caption 4}}{16}{figure.5.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5.5}{\ignorespaces Overall figure caption}}{16}{figure.5.5}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces }}{17}{table.5.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5.2}{\ignorespaces }}{17}{table.5.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5.3}{\ignorespaces }}{18}{table.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.2}Edge Construction}{18}{subsection.5.1.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5.4}{\ignorespaces accuracy (percent)}}{18}{table.5.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.3}Edge Label Classification}{19}{subsection.5.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5.2}Visual Question Answering Model}{20}{section.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.1}GraphVQA}{20}{subsection.5.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.2}Experimental Setup for Proposed Models}{20}{subsection.5.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.3}Baseline}{20}{subsection.5.2.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5.5}{\ignorespaces \textcolor {red}{\textbf  {Complete table}}}}{21}{table.5.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.4}Baseline + GNN}{21}{subsection.5.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.5}ScanSG-GNN}{21}{subsection.5.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.6}ScanSG-Transformer}{21}{subsection.5.2.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.7}Addressing Overfitting}{21}{subsection.5.2.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}Scene Graph Generation}{13}{section.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.1}Node Construction}{13}{subsection.4.1.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Caption 1}}{14}{figure.4.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Caption 2}}{14}{figure.4.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces Caption 3}}{14}{figure.4.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces Caption 4}}{14}{figure.4.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.5}{\ignorespaces Overall figure caption}}{14}{figure.4.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces }}{15}{table.4.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.2}{\ignorespaces }}{15}{table.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.2}Edge Construction}{15}{subsection.4.1.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.3}{\ignorespaces \textcolor {red}{add the GT and pred label under each image, show them all side by side.}}}{16}{table.4.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.4}{\ignorespaces accuracy (percent)}}{16}{table.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.3}Edge Label Classification}{17}{subsection.4.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.4}Dataset Statistics}{17}{subsection.4.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}Visual Question Answering Model}{17}{section.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.1}GraphVQA}{17}{subsection.4.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.2}Experimental Setup}{17}{subsection.4.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.3}Model Performance on ScanSG + ScanQA}{18}{subsection.4.2.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.5}{\ignorespaces Performance on the full ScanSG+ScanQA dataset, with node embeddings computed from the top-k image crops, as described in XX.}}{18}{table.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.4}Addressing Overfitting}{19}{subsection.4.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Model Regularisation}{19}{section*.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.6}{\ignorespaces \textcolor {red}{redo these experiments if possible}}}{20}{table.4.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.5}Model Performance on Ideal Dataset}{20}{subsection.4.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Ideal Graph Nodes, Full Question Dataset}{20}{section*.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.7}{\ignorespaces Performance on the full ScanSG+ScanQA dataset, with node embeddings computed from the object labels}}{20}{table.4.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Ideal Graph Nodes, Easy Question Dataset}{21}{section*.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.8}{\ignorespaces \textcolor {red}{\textbf  {Easy Q dataset Add semantic accuracy}}}}{21}{table.4.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Ideal Graph Nodes, Hard Question Dataset}{21}{section*.6}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.9}{\ignorespaces \textcolor {red}{\textbf  {Easy Q dataset Add semantic accuracy}}}}{21}{table.4.9}\protected@file@percent }
 \citation{day2006wap}
 \citation{day2006wap}
-\@writefile{toc}{\contentsline {chapter}{\numberline {6}Discussion}{23}{chapter.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Discussion}{22}{chapter.5}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusion}{25}{chapter.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces \textcolor {red}{compare with original scanqa paper}}}{22}{table.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}Conclusion}{23}{chapter.6}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \bibstyle{plain}
 \bibdata{references}
-\@writefile{toc}{\contentsline {chapter}{\numberline {A}The First Appendix}{27}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}The First Appendix}{24}{appendix.A}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \bibcite{day2006wap}{1}
-\gdef \@abspage@last{34}
+\gdef \@abspage@last{28}

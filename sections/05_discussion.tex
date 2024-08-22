@@ -15,7 +15,33 @@ The discussion section gives an interpretation of what you have done \cite{day20
 
 \noindent Make sure that the introduction/related work and the discussion section act as a pair, i.e. ``be sure the discussion section answers what the introduction section asked'' \cite{day2006wap}.
 
-Dataset size: The dataset is relatively small, which might have an impact on the performance of the model - might not be able to generalize well to unseen data, overfitting to the training. 
+\begin{table}[h!]
+    \centering
+    \caption{\textcolor{red}{compare with original scanqa paper}}
+    \begin{tabular}{|c|c|l|}
+    \hline
+    \textbf{Model}    & \textbf{EM@1} & \textbf{BLEU-1} \\ \hline
+    ScanQA {[}...{]}  &  23.45        &  31.56          \\ \hline
+    ScanQA2 {[}...{]} &  23.92        &  32.72          \\ \hline
+    \end{tabular}
+    \end{table}
+
+\textbf{Are other methods doing this actually generalizing? Or are they just memorizing the dataset?} I don't really think our model is worse off than the others, i think all models suffer from the overfitting problem.
+
+\textbf{Dataset size:} The dataset is relatively small, which might have an impact on the performance of the model - might not be able to generalize well to unseen data, overfitting to the training. 
 For reference/comparison, the VQAv2 dataset has 1.1M questions, and the GQA dataset has 22M questions (2D VQA datasets). Yet we only have 20K
 
+\textbf{Dataset quality:}
 Dataset contents: most quesitons can be answered with 2d information only...
+
+\textbf{Limitations of CLIP}
+CLIP limitations (eg. high dimensional data, etc.)
+
+\textbf{Requirements for a better dataset}
+
+A lot of the other papers dont prove that the method is generalisable -- they do not report scores on other datasets and do not report the differnce in train/test accuracy. the only papers that do this are simple clip method.
+
+\textbf{Future work}
+could consider another way to encode the scene -- maybe add some kind of context nodes?
+
+difficult to actually assess how integrating edge/context information is helpful for the VQA problem because we dont have a high quality question dataset. this should be a priori
